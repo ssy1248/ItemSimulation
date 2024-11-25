@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  userId     Int       @id @default(autoincrement()) @map("userId")
+  email      String    @unique @map("email")
+  password   String    @map("password")
+  userName   String    @map("userName")
+  createdAt  DateTime  @default(now()) @map("createdAt")
+  updatedAt  DateTime  @updatedAt @map("updatedAt")
+
+  characters Characters[]
+
+  @@map("Users")
+}
+
+model Characters {
+  characterId       Int       @id @default(autoincrement()) @map("characterId")
+  userId            Int       @map("userId")
+  characterName     String    @map("characterName")
+  level             Int       @default(1) @map("level")
+  health            Int       @default(100) @map("health")
+  power             Int       @default(20) @map("power")
+  money             Int       @default(10000) @map("money")
+  createdAt         DateTime  @default(now()) @map("createdAt")
+  updatedAt         DateTime  @updatedAt @map("updatedAt")
+
+  user              Users     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  characterInventory CharactersInventory[]
+  characterItem     CharactersItem[]
+
+  @@map("Characters")
+}
+
+model Items {
+ itemId          Int       @id @default(autoincrement()) @map("itemId")
+  itemName        String    @map("itemName")
+  itemEquip       EQUIPMENT @default(HELMET) @map("itemEquip")
+  itemDescription String    @db.Text @map("itemDescription")
+  itemHealth      Int       @map("itemHealth")
+  itemPower       Int       @map("itemPower")
+  itemRarity      RARITY    @default(COMMON) @map("itemRarity")
+  itemPrice       Int       @map("itemPrice")
+
+  charactersInventory CharactersInventory[]
+  charactersItem      CharactersItem[]
+
+  @@map("Items")
+}
+
+model CharactersInventory {
+  charactersInventoryId Int      @id @default(autoincrement()) @map("charactersInventoryId")
+  characterId           Int      @map("characterId")
+  itemId                Int      @map("itemId")
+  itemEquip             EQUIPMENT @default(HELMET) @map("itemEquip")
+  itemQuantity          Int      @default(1) @map("itemQuantity")
+
+  character             Characters @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  item                  Items      @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+
+  @@map("CharactersInventory")
+}
+
+model CharactersItem {
+  charactersItemId Int      @id @default(autoincrement()) @map("charactersItemId")
+  characterId      Int      @map("characterId")
+  itemId           Int      @map("itemId")
+  itemEquip        EQUIPMENT @default(HELMET) @map("itemEquip")
+  equipped         Boolean  @default(false) @map("equipped")
+
+  character        Characters @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  item             Items      @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+
+  @@map("CharactersItem")
+}
+
+enum RARITY {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum EQUIPMENT {
+  HELMET
+  ARMOR
+  BOOTS
+  BELT
+  PANTS
+  WEAPON
+  AMULET
+  RING
+  NECKLACE
+}
