@@ -1,10 +1,10 @@
 import express from "express";
-import { Prisma } from "@prisma/client";
 import { prisma } from "../utils/prisma/index.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
+//캐릭터 생성 api
 router.post("/create", authMiddleware, async (req, res, next) => {
   try {
     const { characterName } = req.body;
@@ -38,14 +38,14 @@ router.post("/create", authMiddleware, async (req, res, next) => {
 });
 
 //로그인 된 계정의 캐릭터 조회
-router.get("/search/mine/:charId", authMiddleware, async (req, res, next) => {
+router.get("/search/mine/:characterId", authMiddleware, async (req, res, next) => {
   const { userId } = req.user;
   const { characterId } = req.params;
 
   const character = await prisma.characters.findFirst({
     where: {
       userId,
-      characterId,
+      characterId : +characterId,
     },
     select: {
       characterName: true,
@@ -64,12 +64,12 @@ router.get("/search/mine/:charId", authMiddleware, async (req, res, next) => {
 });
 
 //다른 사람의 캐릭터 조회
-router.get("/search/other/:charId", async (req, res, next) => {
+router.get("/search/other/:characterId", async (req, res, next) => {
   const { characterId } = req.params;
 
   const character = await prisma.characters.findFirst({
     where: {
-      characterId,
+      characterId : +characterId,
     },
     select: {
       characterName: true,
@@ -87,3 +87,4 @@ router.get("/search/other/:charId", async (req, res, next) => {
 });
 
 export default router;
+//https://drawsql.app/templates/airbnb

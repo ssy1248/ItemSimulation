@@ -4,6 +4,9 @@ import expressSession from 'express-session';
 import expressMySQLSession from 'express-mysql-session';
 import dotenv from 'dotenv';
 
+import CharacterItemRouter from './routes/character.item.router.js';
+import InventoryRouter from './routes/Inventory.router.js';
+import ItemRouter from './routes/item.router.js';
 import CharacterRouter from './routes/character.router.js';
 import UsersRouter from './routes/users.router.js';
 import LogMiddleware from './middlewares/log.middleware.js';
@@ -43,7 +46,7 @@ app.use(
   })
 );
 
-app.use('/api', [UsersRouter, CharacterRouter]);
+app.use('/api', [UsersRouter, CharacterRouter, ItemRouter, InventoryRouter, CharacterItemRouter]);
 app.use(ErrorHandlingMiddleware);
 
 app.listen(PORT, () => {

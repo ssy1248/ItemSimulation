@@ -15,6 +15,7 @@ datasource db {
 
 model Users {
   userId     Int       @id @default(autoincrement()) @map("userId")
+  admin      Boolean   @default(false) @map("admin")
   email      String    @unique @map("email")
   password   String    @map("password")
   userName   String    @map("userName")
@@ -45,7 +46,7 @@ model Characters {
 }
 
 model Items {
- itemId          Int       @id @default(autoincrement()) @map("itemId")
+  itemId          Int       @id @default(autoincrement()) @map("itemId")
   itemName        String    @map("itemName")
   itemEquip       EQUIPMENT @default(HELMET) @map("itemEquip")
   itemDescription String    @db.Text @map("itemDescription")

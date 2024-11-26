@@ -5,9 +5,10 @@ import bcrypt from "bcrypt";
 
 const router = express.Router();
 
+//회원 가입 api
 router.post("/sign-up", async (req, res, next) => {
   try {
-    // 변경 사항 : 비밀번호 확인 / 비밀번호 최소 6자리
+    // 변경 사항 : 비밀번호 확인 / 비밀번호 최소 6자리 / 어드민 boolean 값 추가하여 구분
     const { email, password, userName } = req.body;
 
     const isExistUser = await prisma.users.findFirst({
@@ -41,6 +42,7 @@ router.post("/sign-up", async (req, res, next) => {
   }
 });
 
+//로그인 api
 router.post("/sign-in", async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -55,5 +57,7 @@ router.post("/sign-in", async (req, res, next) => {
 
   return res.status(200).json({ message: "로그인이 성공하였습니다." });
 });
+
+//캐릭터 삭제 API → (JWT 인증 필요)
 
 export default router;
