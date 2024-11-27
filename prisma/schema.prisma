@@ -15,7 +15,7 @@ datasource db {
 
 model Users {
   userId     Int       @id @default(autoincrement()) @map("userId")
-  admin      Boolean   @default(false) @map("admin")
+  //admin      Boolean   @default(false) @map("admin")
   email      String    @unique @map("email")
   password   String    @map("password")
   userName   String    @map("userName")
@@ -65,7 +65,6 @@ model CharactersInventory {
   charactersInventoryId Int      @id @default(autoincrement()) @map("charactersInventoryId")
   characterId           Int      @map("characterId")
   itemId                Int      @map("itemId")
-  itemEquip             EQUIPMENT @default(HELMET) @map("itemEquip")
   itemQuantity          Int      @default(1) @map("itemQuantity")
 
   character             Characters @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
@@ -78,7 +77,6 @@ model CharactersItem {
   charactersItemId Int      @id @default(autoincrement()) @map("charactersItemId")
   characterId      Int      @map("characterId")
   itemId           Int      @map("itemId")
-  itemEquip        EQUIPMENT @default(HELMET) @map("itemEquip")
   equipped         Boolean  @default(false) @map("equipped")
 
   character        Characters @relation(fields: [characterId], references: [characterId], onDelete: Cascade)

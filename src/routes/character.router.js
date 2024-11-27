@@ -5,7 +5,7 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 //캐릭터 생성 api
-router.post("/create", authMiddleware, async (req, res, next) => {
+router.post("/character/create", authMiddleware, async (req, res, next) => {
   try {
     const { characterName } = req.body;
     const { userId } = req.user;
@@ -37,22 +37,66 @@ router.post("/create", authMiddleware, async (req, res, next) => {
   }
 });
 
+//모든 캐릭터 조회
+router.get('/search/character/all', async (req, res, next) => {
+  try{
+    const characters = await prisma.characters.findMany({
+      select:{
+        characterId: true,
+        characterName: true,
+        level: true,
+      },
+    });
+
+    return res.status(200).json({data: characters});
+  } catch (err) {
+    next(err);
+  }
+})
+
 //로그인 된 계정의 캐릭터 조회
-router.get("/search/mine/:characterId", authMiddleware, async (req, res, next) => {
-  const { userId } = req.user;
+router.get(
+  "/search/character/mine/:characterId",
+  authMiddleware,
+  async (req, res, next) => {
+    const { userId } = req.user;
+    const { characterId } = req.params;
+
+    const character = await prisma.characters.findFirst({
+      where: {
+        userId,
+        characterId: +characterId,
+      },
+      select: {
+        characterName: true,
+        level: true,
+        health: true,
+        power: true,
+        money: true,
+      },
+    });
+
+    if (!character) {
+      return res.status(404).json({ message: "캐릭터를 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json({ data: character });
+  }
+);
+
+//다른 사람의 캐릭터 조회
+router.get("/search/character/other/:characterId", async (req, res, next) => {
   const { characterId } = req.params;
 
   const character = await prisma.characters.findFirst({
     where: {
-      userId,
-      characterId : +characterId,
+      characterId: +characterId,
     },
     select: {
       characterName: true,
       level: true,
       health: true,
       power: true,
-      money: true,
     },
   });
 
@@ -63,27 +107,34 @@ router.get("/search/mine/:characterId", authMiddleware, async (req, res, next) =
   return res.status(200).json({ data: character });
 });
 
-//다른 사람의 캐릭터 조회
-router.get("/search/other/:characterId", async (req, res, next) => {
-  const { characterId } = req.params;
+//캐릭터 삭제 API → (JWT 인증 필요)
+router.delete("/cancel/character/:characterId", authMiddleware, async (req, res, next) => {
+  try{
+    const { userId } = req.user;
+    const { characterId } = req.params;
 
-  const character = await prisma.characters.findFirst({
-    where: {
-      characterId : +characterId,
-    },
-    select: {
-      characterName: true,
-      level: true,
-      health: true,
-      power: true,
-    },
-  });
+    const character = await prisma.characters.findFirst({
+      where: {
+        characterId: +characterId,
+        userId,
+      },
+    });
 
-  if (!character) {
-    return res.status(404).json({ message: "캐릭터를 찾을 수 없습니다." });
+    if (!character) {
+      return res.status(404).json({ message: "본인의 캐릭터가 아닙니다" });
+    }
+    
+    await prisma.characters.delete({
+      where:{
+        characterId: +characterId,
+        userId,
+      }
+    });
+
+    return res.status(200).json({ data: "캐릭터가 삭제되었습니다." });
+  } catch (err) {
+    next(err);
   }
-
-  return res.status(200).json({ data: character });
 });
 
 export default router;

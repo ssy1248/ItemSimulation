@@ -2,6 +2,7 @@ import express from "express";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../utils/prisma/index.js";
 import bcrypt from "bcrypt";
+import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -21,20 +22,23 @@ router.post("/sign-up", async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [user] = await prisma.$transaction(async(tx) => {
-      const user = await tx.users.create({
-        data: {
-          email,
-          password: hashedPassword,
-          userName,
-        },
-      });
+    const [user] = await prisma.$transaction(
+      async (tx) => {
+        const user = await tx.users.create({
+          data: {
+            email,
+            password: hashedPassword,
+            userName,
+          },
+        });
 
-      return [user];
-    }, {
-      //트랜잭션의 격리 수준을 결정하는 부분
-      isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-    })
+        return [user];
+      },
+      {
+        //트랜잭션의 격리 수준을 결정하는 부분
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      }
+    );
 
     return res.status(201).json({ message: "회원가입이 완료되었습니다." });
   } catch (err) {
@@ -57,7 +61,5 @@ router.post("/sign-in", async (req, res, next) => {
 
   return res.status(200).json({ message: "로그인이 성공하였습니다." });
 });
-
-//캐릭터 삭제 API → (JWT 인증 필요)
 
 export default router;

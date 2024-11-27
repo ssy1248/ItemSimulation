@@ -41,35 +41,71 @@ router.post("/post/item", async (req, res, next) => {
 
 //모든 아이템 조회 api
 router.get("/search/items", async (req, res, next) => {
-    const items = await prisma.items.findMany({
-        select: {
-            itemId: true,
-            itemName: true,
-            itemPrice: true,
-        }
-    });
+  const items = await prisma.items.findMany({
+    select: {
+      itemId: true,
+      itemName: true,
+      itemEquip: true,
+      itemHealth: true,
+      itemPower: true,
+      itemRarity: true,
+      itemPrice: true,
+    },
+  });
 
-    return res.status(200).json({data : items});
+  return res.status(200).json({ data: items });
 });
 
 //아이템 id 조회해서 하나의 아이템 출력
 router.get("/search/item/:itemId", async (req, res, next) => {
-    const {itemId} = req.params;
+  const { itemId } = req.params;
 
-    const item = await prisma.items.findFirst({
-        where: {itemId : +itemId},
-        select: {
-            itemId: true,
-            itemName: true,
-            itemDescription: true,
-            itemEquip: true,
-            itemHealth: true,
-            itemPower: true,
-            itemRarity: true,
-            itemPrice: true,
-        }
-    });
-    return res.status(200).json({data : item});
+  const item = await prisma.items.findFirst({
+    where: { itemId: +itemId },
+    select: {
+      itemId: true,
+      itemName: true,
+      itemDescription: true,
+      itemEquip: true,
+      itemHealth: true,
+      itemPower: true,
+      itemRarity: true,
+      itemPrice: true,
+    },
+  });
+  return res.status(200).json({ data: item });
+});
+
+//아이템 수정 api
+router.put("/update/item/:itemId", async(req, res, next) => {
+  const { itemId } = req.params;
+  const { itemName,itemEquip, itemHealth, itemPower, itemRarity, itemPrice } = req.body;
+
+  const item = await prisma.items.findFirst({
+    where:{
+      itemId: +itemId,
+    }
+  });
+
+  if(!item){
+    return res.status(404).json({ message: "아이템이 존재하지 않습니다." });
+  }
+
+  await prisma.items.update({
+    where: {
+      itemId: +itemId,
+    },
+    data: {
+      itemName: itemName,
+      itemEquip: itemEquip,
+      itemHealth: itemHealth,
+      itemPower: itemPower,
+      itemRarity: itemRarity,
+      itemPrice: itemPrice,
+    },
+  });
+
+  return res.status(200).json({ data: "아이템 데이터가 수정되었습니다." });
 });
 
 export default router;

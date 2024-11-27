@@ -5,7 +5,10 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 //아이템 인벤토리 추가 api
-router.post("/insert/:characterId/:itemId", authMiddleware, async (req, res, next) => {
+router.post(
+  "/insert/:characterId/:itemId",
+  authMiddleware,
+  async (req, res, next) => {
     try {
       const { userId } = req.user;
       const { characterId, itemId } = req.params;
@@ -19,7 +22,9 @@ router.post("/insert/:characterId/:itemId", authMiddleware, async (req, res, nex
       });
 
       if (!character) {
-        return res.status(403).json({ message: "해당 캐릭터는 사용자의 것이 아닙니다." });
+        return res
+          .status(403)
+          .json({ message: "해당 캐릭터는 사용자의 것이 아닙니다." });
       }
 
       // 아이템 정보 가져오기
@@ -51,7 +56,9 @@ router.post("/insert/:characterId/:itemId", authMiddleware, async (req, res, nex
             itemQuantity: existingItem.itemQuantity + 1,
           },
         });
-        return res.status(200).json({ message: "아이템 수량이 증가되었습니다." });
+        return res
+          .status(200)
+          .json({ message: "아이템 수량이 증가되었습니다." });
       }
 
       // 존재하지 않으면 새로 추가
@@ -59,12 +66,13 @@ router.post("/insert/:characterId/:itemId", authMiddleware, async (req, res, nex
         data: {
           characterId: +characterId,
           itemId: +itemId,
-          itemEquip,
           itemQuantity: 1,
         },
       });
 
-      return res.status(201).json({ message: "아이템이 캐릭터 인벤토리에 추가되었습니다." });
+      return res
+        .status(201)
+        .json({ message: "아이템이 캐릭터 인벤토리에 추가되었습니다." });
     } catch (err) {
       next(err);
     }
@@ -72,40 +80,45 @@ router.post("/insert/:characterId/:itemId", authMiddleware, async (req, res, nex
 );
 
 // 로그인 된 계정의 캐릭터 인벤토리 조회
-router.get("/search/inventory/:characterId", authMiddleware, async (req, res, next) => {
-    try{
-        const { userId } = req.user;
-        const { characterId } = req.params;
-    
-        //자신의 캐릭터인지 확인
-        const character = await prisma.characters.findFirst({
-          where: {
-            userId,
-            characterId: +characterId,
-          },
-        });
-    
-        if (!character) {
-          return res.status(403).json({ message: "해당 캐릭터는 사용자의 것이 아닙니다." });
-        }
-    
-        const inventory = await prisma.charactersInventory.findMany({
-          where: {
-            characterId: +characterId,
-          },
-          include: {
-            item: {
-              select: {
-                itemName: true,
-                itemEquip: true,
-                itemRarity: true,
-              },
+router.get(
+  "/search/inventory/:characterId",
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user;
+      const { characterId } = req.params;
+
+      //자신의 캐릭터인지 확인
+      const character = await prisma.characters.findFirst({
+        where: {
+          userId,
+          characterId: +characterId,
+        },
+      });
+
+      if (!character) {
+        return res
+          .status(403)
+          .json({ message: "해당 캐릭터는 사용자의 것이 아닙니다." });
+      }
+
+      const inventory = await prisma.charactersInventory.findMany({
+        where: {
+          characterId: +characterId,
+        },
+        include: {
+          item: {
+            select: {
+              itemName: true,
+              itemEquip: true,
+              itemRarity: true,
             },
           },
-        });
-        return res.status(200).json({data: inventory});
-    } catch(err){
-        next(err);
+        },
+      });
+      return res.status(200).json({ data: inventory });
+    } catch (err) {
+      next(err);
     }
   }
 );
