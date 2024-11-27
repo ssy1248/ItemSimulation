@@ -1,4 +1,9 @@
-JS의 Express를 이용하여 아이템 시뮬레이션 제작
+#JS의 Express를 이용하여 아이템 시뮬레이션 제작
+***
+
+인증 미들웨어
+authmiddleware 를 통하여서 로그인을 검사
+***
 
 로그인 / 회원가입 기능 - users.router.js
 회원가입 - router.post("/sign-up", async (req, res, next)
