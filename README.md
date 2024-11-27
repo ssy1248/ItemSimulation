@@ -19,3 +19,6 @@ router.post("/create", authMiddleware, async (req, res, next)
 인벤토리 관련 - Inventory.router.js
 로그인된 계정의 캐릭터의 인벤토리에 아이템 추가 - router.post("/insert/:characterId/:itemId", authMiddleware, async (req, res, next)
 로그인된 계정의 캐릭터의 인벤토리 조회 - router.get("/search/inventory/:characterId", authMiddleware, async (req, res, next)
+
+***
+![데이터베이스 모델 이미지](https://github.com/ssy1248/ItemSimulation/blob/main/%EC%95%84%EC%9D%B4%ED%85%9C%20%EC%8B%9C%EB%AE%AC%EB%A0%88%EC%9D%B4%ED%84%B0%20%EB%8D%B0%EC%9D%B4%ED%84%B0%20%EB%AA%A8%EB%8D%B8.png)
