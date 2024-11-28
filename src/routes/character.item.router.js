@@ -97,28 +97,107 @@ router.post(
   }
 );
 
-//아이템 탈착 api
+//아이템 착용해제 api
 router.post(
   "/detachment/item/:characterId/:itemId",
   authMiddleware,
   async (req, res, next) => {
     try {
-        const { userId } = req.user;
-        const { characterId, itemId } = req.params;
+      const { userId } = req.user;
+      const { characterId, itemId } = req.params;
 
-        const character = await prisma.characters.findFirst({
-            where: {
-                userId,
-                characterId: +characterId,
-            }
+      // 계정의 캐릭터인지 조회
+      const character = await prisma.characters.findFirst({
+        where: {
+          userId,
+          characterId: +characterId,
+        },
+        select: {
+          health: true,
+          power: true,
+        },
+      });
+
+      if (!character) {
+        return res
+          .status(403)
+          .json({ message: "해당 캐릭터는 계정의 캐릭터가 아닙니다." });
+      }
+
+      // 착용중인 아이템인지 조회
+      const equipItem = await prisma.charactersItem.findFirst({
+        where: {
+          characterId: +characterId,
+          itemId: +itemId,
+        },
+        include: {
+          item: {
+            select: {
+              itemHealth: true,
+              itemPower: true,
+            },
+          },
+        },
+      });
+
+      if (!equipItem) {
+        return res.status(404).json({ message: "착용중인 아이템이 아닙니다." });
+      }
+
+      const healthIncrease = equipItem.item?.itemHealth || 0;
+      const powerIncrease = equipItem.item?.itemPower || 0;
+
+      await prisma.$transaction(async (tx) => {
+        //착용 테이블에서 데이터 삭제
+        await tx.charactersItem.delete({
+          where: {
+            charactersItemId: equipItem.charactersItemId,
+          },
         });
 
-        if(!character){
-            return res.status(403).json({ message: "해당 캐릭터는 계정의 캐릭터가 아닙니다." });
+        //캐릭터 power, health 업데이트
+        await tx.characters.update({
+          where: {
+            characterId: +characterId,
+          },
+          data: {
+            health: character.health - healthIncrease,
+            power: character.power - powerIncrease,
+          },
+        });
+
+        // 인벤토리에서 아이템 조회
+        const inventoryItem = await tx.charactersInventory.findFirst({
+          where: {
+            itemId: +itemId,
+            characterId: +characterId,
+          },
+        });
+
+        //인벤토리에 아이템이 없다면 생성
+        if (!inventoryItem) {
+          await tx.charactersInventory.create({
+            data: {
+              characterId: +characterId,
+              itemId: +itemId,
+              itemQuantity: 1,
+            },
+          });
         }
+        //인벤토리에 아이템이 있다면 갯수 증가
+        else {
+          await tx.charactersInventory.update({
+            where: {
+              charactersInventoryId: inventoryItem.charactersInventoryId,
+            },
+            data: {
+              itemQuantity: inventoryItem.itemQuantity + 1,
+            },
+          });
+        }
+      });
 
-
-
+      return res.status(200).json({ message: "아이템이 착용 해제 되었습니다." });
     } catch (err) {
       next(err);
     }
@@ -154,3 +233,5 @@ router.get("/search/equip/:characterId", async (req, res, next) => {
 });
 
 export default router;
+
+//DQL, DML

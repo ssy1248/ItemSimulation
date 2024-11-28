@@ -4,6 +4,7 @@ import expressSession from 'express-session';
 import expressMySQLSession from 'express-mysql-session';
 import dotenv from 'dotenv';
 
+import GoldGetRouter from './routes/gold.get.router.js';
 import CharacterItemRouter from './routes/character.item.router.js';
 import InventoryRouter from './routes/Inventory.router.js';
 import ItemRouter from './routes/item.router.js';
@@ -46,7 +47,7 @@ app.use(
   })
 );
 
-app.use('/api', [UsersRouter, CharacterRouter, ItemRouter, InventoryRouter, CharacterItemRouter]);
+app.use('/api', [UsersRouter, CharacterRouter, ItemRouter, InventoryRouter, CharacterItemRouter, GoldGetRouter]);
 app.use(ErrorHandlingMiddleware);
 
 app.listen(PORT, () => {
