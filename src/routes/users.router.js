@@ -2,15 +2,27 @@ import express from "express";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../utils/prisma/index.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
+// JWT secret key
+const JWT_SECRET = process.env.SESSION_SECRET_KEY || "SECRET_KEY";
+
 //회원 가입 api
 router.post("/sign-up", async (req, res, next) => {
   try {
-    // 변경 사항 : 비밀번호 확인 / 비밀번호 최소 6자리 / 어드민 boolean 값 추가하여 구분
-    const { email, password, userName } = req.body;
+    // 변경 사항 : 비밀번호 확인 / 비밀번호 최소 6자리 / 토큰을 헤더로
+    const { email, password, confirmPassword, userName } = req.body;
+
+    if(password !== confirmPassword){
+      return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
+    }
+
+    if(password.length < 6) {
+      return res.status(400).json({ message: "비밀번호는 최소 6자리 이상이어야 합니다." });
+    }
 
     const isExistUser = await prisma.users.findFirst({
       where: { email },
@@ -58,6 +70,14 @@ router.post("/sign-in", async (req, res, next) => {
     return res.status(401).json({ message: "비밀번호가 일치하지 않습니다." });
 
   req.session.userId = user.userId;
+
+  // JWT 토큰 생성
+  const token = jwt.sign({ userId: user.userId }, JWT_SECRET, {
+    expiresIn: "1h", // 1시간 후 만료
+  });
+
+  // 토큰을 헤더로 전달
+  res.setHeader("Authorization", `Bearer ${token}`);
 
   return res.status(200).json({ message: "로그인이 성공하였습니다." });
 });
